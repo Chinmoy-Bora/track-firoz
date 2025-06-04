@@ -6,7 +6,7 @@ import "./globals.css";
 // Example gym location (latitude, longitude)
 // Replace with your actual gym location coordinates
 const GYM_LOCATION = { lat: 26.722261498406127, lng: 93.14567411670511 }; // Guwahati, Assam example
-const GYM_RADIUS_METERS = 200; // Allow marking within 200 meters
+const GYM_RADIUS_METERS = 50; // Allow marking within 200 meters
 const STATIC_CODE = "Firoz"; // Only this code can mark attendance
 
 function getDistanceFromLatLonInMeters(
@@ -123,20 +123,46 @@ export default function Home() {
   }
 
   async function handleMarkAttendance() {
-    try {
-      const res = await fetch("/api/attendance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: todayStr })
-      });
-      if (res.ok) {
-        setAttendance((prev) => ({ ...prev, [todayStr]: true }));
-      } else {
-        setError("Failed to mark attendance.");
-      }
-    } catch (e) {
-      setError("Failed to mark attendance.");
+    setError("");
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by this browser.");
+      return;
     }
+    setCheckingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const dist = getDistanceFromLatLonInMeters(
+          latitude,
+          longitude,
+          GYM_LOCATION.lat,
+          GYM_LOCATION.lng
+        );
+        setCheckingLocation(false);
+        if (dist > GYM_RADIUS_METERS) {
+          setError("You are not at the gym location. Attendance not marked.");
+          return;
+        }
+        try {
+          const res = await fetch("/api/attendance", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ date: todayStr })
+          });
+          if (res.ok) {
+            setAttendance((prev) => ({ ...prev, [todayStr]: true }));
+          } else {
+            setError("Failed to mark attendance.");
+          }
+        } catch (e) {
+          setError("Failed to mark attendance.");
+        }
+      },
+      (err) => {
+        setCheckingLocation(false);
+        setError("Location access denied or unavailable.");
+      }
+    );
   }
 
   function handleSpectate() {

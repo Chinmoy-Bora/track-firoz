@@ -1,0 +1,16 @@
+{
+  "name": "Firoz's Gym Attendance Tracker",
+  "short_name": "GymTracker",
+  "description": "Track Firoz's gym attendance and help him stay fit!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/gym.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
