@@ -27,9 +27,14 @@ function getDistanceFromLatLonInMeters(
   return R * c;
 }
 
-function getMonthDays(year: number, month: number) {
-  const days = [];
-  const firstDay = new Date(year, month, 1);
+// Helper for month names
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+];
+
+// Restore the getMonthDays function
+function getMonthDays(year: number, month: number): Date[] {
+  const days: Date[] = [];
   const lastDay = new Date(year, month + 1, 0);
   for (let d = 1; d <= lastDay.getDate(); d++) {
     days.push(new Date(year, month, d));
@@ -37,16 +42,9 @@ function getMonthDays(year: number, month: number) {
   return days;
 }
 
-// Helper for month names
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
-];
-
 export default function Home() {
   const [canMark, setCanMark] = useState(false);
   const [attendance, setAttendance] = useState<{ [date: string]: boolean }>({});
-  const [checkingLocation, setCheckingLocation] = useState(false);
-  const [error, setError] = useState("");
   const [code, setCode] = useState("");
   const [isSpectator, setIsSpectator] = useState(false);
   const [codeError, setCodeError] = useState("");
@@ -78,8 +76,8 @@ export default function Home() {
         const res = await fetch("/api/attendance");
         const data = await res.json();
         setAttendance(data);
-      } catch (e) {
-        setError("Failed to fetch attendance from server.");
+      } catch {
+        // setError("Failed to fetch attendance from server.");
       }
     }
     fetchAttendance();
@@ -87,7 +85,6 @@ export default function Home() {
 
   useEffect(() => {
     if (isSpectator || !isMarkingMode) return;
-    setCheckingLocation(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -99,36 +96,22 @@ export default function Home() {
             GYM_LOCATION.lng
           );
           setCanMark(dist <= GYM_RADIUS_METERS);
-          setCheckingLocation(false);
         },
-        (err) => {
-          setError("Location access denied or unavailable.");
-          setCheckingLocation(false);
+        () => {
+          // setError("Location access denied or unavailable.");
         }
       );
     } else {
-      setError("Geolocation is not supported by this browser.");
-      setCheckingLocation(false);
+      // setError("Geolocation is not supported by this browser.");
     }
   }, [isSpectator, isMarkingMode]);
 
-  function handleCodeSubmit() {
-    setCodeError("");
-    if (code !== STATIC_CODE) {
-      setCodeError("Invalid code. Only the authorized person can mark attendance.");
-      return;
-    }
-    setIsMarkingMode(true);
-    localStorage.setItem("isMarkingMode", "true");
-  }
-
   async function handleMarkAttendance() {
-    setError("");
+    // setError("");
     if (!navigator.geolocation) {
-      setError("Geolocation is not supported by this browser.");
+      // setError("Geolocation is not supported by this browser.");
       return;
     }
-    setCheckingLocation(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
@@ -138,9 +121,8 @@ export default function Home() {
           GYM_LOCATION.lat,
           GYM_LOCATION.lng
         );
-        setCheckingLocation(false);
         if (dist > GYM_RADIUS_METERS) {
-          setError("You are not at the gym location. Attendance not marked.");
+          // setError("You are not at the gym location. Attendance not marked.");
           return;
         }
         try {
@@ -152,30 +134,16 @@ export default function Home() {
           if (res.ok) {
             setAttendance((prev) => ({ ...prev, [todayStr]: true }));
           } else {
-            setError("Failed to mark attendance.");
+            // setError("Failed to mark attendance.");
           }
-        } catch (e) {
-          setError("Failed to mark attendance.");
+        } catch {
+          // setError("Failed to mark attendance.");
         }
       },
-      (err) => {
-        setCheckingLocation(false);
-        setError("Location access denied or unavailable.");
+      () => {
+        // setError("Location access denied or unavailable.");
       }
     );
-  }
-
-  function handleSpectate() {
-    setIsSpectator(true);
-    setError("");
-    setCheckingLocation(false);
-  }
-
-  function handleBack() {
-    setIsSpectator(false);
-    setCode("");
-    setCodeError("");
-    setError("");
   }
 
   function handleLogout() {
@@ -204,18 +172,15 @@ export default function Home() {
 
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const monthDays = getMonthDays(year, month);
   const calendarDays = getMonthDays(calendarYear, calendarMonth);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 gap-8 bg-cover bg-center" style={{ backgroundImage: 'url(/gym.png)' }}>
-      <h1 className="text-3xl font-bold mb-4 font-mono">Firoz's Gym Attendance Tracker</h1>
+      <h1 className="text-3xl font-bold mb-4 font-mono">Firoz&apos;s Gym Attendance Tracker</h1>
       <p className="text-center text-gray-700 dark:text-gray-300 mb-4 font-mono">
-        Firoz believes fat will vanish on its own. We're here to spy on his gym visits—and if he dares skip today, we'll blow the whistle (and maybe his snacks)!
+        Firoz believes fat will vanish on its own. We&apos;re here to spy on his gym visits—and if he dares skip today, we&apos;ll blow the whistle (and maybe his snacks)!
       </p>
-      <p className="text-center text-red-600 font-bold mb-4 font-mono">Firoz you can't hide</p>
+      <p className="text-center text-red-600 font-bold mb-4 font-mono">Firoz you can&apos;t hide</p>
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 w-full max-w-md flex flex-col items-center">
         {showModeSelect ? (
           <>
@@ -255,7 +220,7 @@ export default function Home() {
                 localStorage.removeItem("isMarkingMode");
               }}
             >
-              Let’s Spy on Firoz 👀
+              Let&apos;s Spy on Firoz 👀
             </button>
           </>
         ) : (
@@ -285,7 +250,7 @@ export default function Home() {
                   {Array(calendarDays[0].getDay()).fill(null).map((_, i) => (
                     <div key={"empty-"+i}></div>
                   ))}
-                  {calendarDays.map((date) => {
+                  {calendarDays.map((date: Date) => {
                     const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
                     const marked = attendance[dateStr];
                     const isToday =

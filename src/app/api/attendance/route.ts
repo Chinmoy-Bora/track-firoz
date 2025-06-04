@@ -18,7 +18,7 @@ async function getCollection() {
   return client.db(dbName).collection<AttendanceDoc>(collectionName);
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const collection = await getCollection();
   const doc = await collection.findOne({ _id: 'main' });
   return NextResponse.json(doc?.days || {});
