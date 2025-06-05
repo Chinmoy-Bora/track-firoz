@@ -5,7 +5,7 @@ import "./globals.css";
 
 // Example gym location (latitude, longitude)
 // Replace with your actual gym location coordinates
-const GYM_LOCATION = { lat: 26.125568, lng: 91.786560 }; // Guwahati, Assam example
+const GYM_LOCATION = { lat: 26.722222637907443, lng: 93.14560781021812 }; // Guwahati, Assam example
 const GYM_RADIUS_METERS = 50; // Allow marking within 200 meters
 const STATIC_CODE = "FirozLaude"; // Only this code can mark attendance
 
